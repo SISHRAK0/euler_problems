@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Clojure
+        uses: DeLaGuardo/setup-clojure@v1
+        with:
+          clojure-version: '1.11.2'
+
+      - name: Run tests
+        run: |
+          clj -M:test -e "(clojure.test/run-tests 'euler.problem7-test 'euler.problem24-test)"
+
+      - name: clj-kondo lint
+        run: |
+          curl -sSfL https://github.com/clj-kondo/clj-kondo/releases/latest/download/clj-kondo-linux-amd64 -o clj-kondo
+          chmod +x clj-kondo
+          ./clj-kondo --config .clj-kondo/config.edn --lint src test
+
+      - name: Check formatting (zprint)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/kkinnear/zprint/master/scripts/install.sh | bash
+          ./zprint --check src test
