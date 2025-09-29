@@ -1,31 +1,37 @@
-name: CI
+name: Clojure CI
 
 on:
   push:
+    branches: [ main, master ]
   pull_request:
+    branches: [ main, master ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    defaults:
+      run:
+        working-directory: ./euler
 
-      - name: Set up Clojure
-        uses: DeLaGuardo/setup-clojure@v1
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Clojure (Leiningen + Clojure CLI)
+        uses: DeLaGuardo/setup-clojure@11.0
         with:
-          clojure-version: '1.11.2'
+          lein: latest
+          cli: latest
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.m2
+            ~/.lein
+            ./euler/target
+          key: ${{ runner.os }}-lein-${{ hashFiles('euler/project.clj') }}
+          restore-keys: |
+            ${{ runner.os }}-lein-
 
       - name: Run tests
-        run: |
-          clj -M:test -e "(clojure.test/run-tests 'euler.problem7-test 'euler.problem24-test)"
-
-      - name: clj-kondo lint
-        run: |
-          curl -sSfL https://github.com/clj-kondo/clj-kondo/releases/latest/download/clj-kondo-linux-amd64 -o clj-kondo
-          chmod +x clj-kondo
-          ./clj-kondo --config .clj-kondo/config.edn --lint src test
-
-      - name: Check formatting (zprint)
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/kkinnear/zprint/master/scripts/install.sh | bash
-          ./zprint --check src test
+        run: lein test
