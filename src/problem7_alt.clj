@@ -14,8 +14,8 @@
           (sieve-gen [n primes]
             (lazy-seq
               (if (composite? n primes)
-                (sieve-gen (inc n) primes)          ;; пропускаем составные
-                (cons n (sieve-gen (inc n) (conj primes n))))))] ;; добавляем новый простой
+                (sieve-gen (inc n) primes)
+                (cons n (sieve-gen (inc n) (conj primes n))))))]
     (cons 2 (sieve-gen 3 [2]))))
 
 (defn solve-7-sieve []
