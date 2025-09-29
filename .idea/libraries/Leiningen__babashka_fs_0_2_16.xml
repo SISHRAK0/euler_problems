@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="Leiningen: babashka/fs:0.2.16">
-    <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/babashka/fs/0.2.16/fs-0.2.16.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
