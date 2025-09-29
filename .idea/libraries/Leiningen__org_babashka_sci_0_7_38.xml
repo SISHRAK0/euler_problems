@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: org.babashka/sci:0.7.38">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/babashka/sci/0.7.38/sci-0.7.38.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

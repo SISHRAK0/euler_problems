@@ -1,11 +1,22 @@
 (ns problem7-alt)
 
-(defn sieve []
-  (letfn [(sieve-inner [s]
+;; Оптимизированное ленивое решето:
+;; не накапливает бесконечную цепочку remove,
+;; а хранит список найденных простых и проверяет кандидата
+;; только на делимость до sqrt(n).
+
+(defn sieve
+  "Ленивая последовательность простых чисел."
+  []
+  (letfn [(composite? [n primes]
+            (some #(zero? (mod n %))
+                  (take-while #(<= (* % %) n) primes)))
+          (sieve-gen [n primes]
             (lazy-seq
-              (let [p (first s)]
-                (cons p (sieve-inner (remove #(zero? (mod % p)) (rest s)))))))]
-    (sieve-inner (iterate inc 2))))
+              (if (composite? n primes)
+                (sieve-gen (inc n) primes)          ;; пропускаем составные
+                (cons n (sieve-gen (inc n) (conj primes n))))))] ;; добавляем новый простой
+    (cons 2 (sieve-gen 3 [2]))))
 
 (defn solve-7-sieve []
   (nth (sieve) 10000))

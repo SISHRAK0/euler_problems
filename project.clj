@@ -4,25 +4,23 @@
   :license {:name "MIT"}
 
   :min-lein-version "2.9.0"
-
-  ;; Clojure version requirement
-  :dependencies [[org.clojure/clojure "1.11.3"]
-                 ;; numeric-tower optional if you want extra math funcs
-                 [org.clojure/math.numeric-tower "0.0.4"]]
-
-  ;; Plugins: cljfmt for formatting, eastwood for linting, midje for facts
-  :plugins [[lein-cljfmt "0.8.4"]
-            [jonase/eastwood "1.4.0"]
-            [lein-midje "3.2.1"]]
-
-  ;; For `lein run` convenience (optional)
-  :main ^:skip-aot euler.core
-
-  :profiles
-  {:dev {:dependencies [[midje "1.9.10"]]
-         :source-paths ["src" "dev"]
-         :test-paths ["test"]}}
-
-  ;; cljfmt configuration via lein plugin (can also be .cljfmt)
-  :cljfmt {:indents {nth-prime-tail [[:block 0]]}} ;; example if needed
-  )
+  :dependencies [[org.clojure/clojure "1.12.2"]]
+  :main ^:skip-aot lab1.core
+  :target-path "target/%s"
+  :plugins [[lein-cljfmt "0.8.2"]
+            [lein-kibit "0.1.8"]
+            [lein-bikeshed "0.5.2"]]
+  :profiles {:uberjar {:aot      :all
+                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
+             :dev     {:dependencies [[midje "1.10.9"]
+                                      [org.clojure/test.check "1.1.1"]
+                                      [pjstadig/humane-test-output "0.11.0"]
+                                      [clj-kondo "2023.10.20"]]}}
+  :test-selectors {:default     (complement :integration)
+                   :integration :integration
+                   :all         (constantly true)}
+  :aliases {"lint" ["do"
+                    ["cljfmt" "check"]
+                    ["kibit"]
+                    ["bikeshed" "--max-line-length" "120"]
+                    ["run" "-m" "clj-kondo.main" "--lint" "src" "test"]]})

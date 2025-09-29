@@ -3,10 +3,39 @@
             [problem7 :as p7]
             [problem7-alt :as p7alt]))
 
-(deftest basics
-  (is (= 13 (nth p7/primes-lazy 5)))
-  (is (= 104743 (p7/solve-7-lazy)))
-  (is (= 104743 (p7/solve-7-map)))
-  (is (= 104743 (p7/solve-7-recursive)))
-  (is (= 104743 (p7/solve-7-tail)))
-  (is (= 104743 (p7alt/solve-7-sieve))))
+(deftest prime?-basics
+  (testing "Корректность функции prime?"
+    (is (false? (p7/prime? 0)))
+    (is (false? (p7/prime? 1)))
+    (is (true?  (p7/prime? 2)))
+    (is (true?  (p7/prime? 3)))
+    (is (false? (p7/prime? 4)))
+    (is (true?  (p7/prime? 29)))
+    (is (false? (p7/prime? 100)))))
+
+(deftest small-primes
+  (testing "Первые простые числа через ленивую последовательность"
+    (is (= [2 3 5 7 11 13]
+           (take 6 p7/primes-lazy)))))
+
+(deftest solve-7-all-implementations
+  (testing "Все реализации должны вернуть 10001-й простой"
+    (is (= 104743 (p7/solve-7-tail)))
+    (is (= 104743 (p7/solve-7-recursive)))
+    (is (= 104743 (p7/solve-7-modular)))
+    (is (= 104743 (p7/solve-7-map)))
+    (is (= 104743 (p7/solve-7-loop)))
+    (is (= 104743 (p7/solve-7-lazy)))
+    (is (= 104743 (p7alt/solve-7-sieve)))))
+
+(deftest consistency-check
+  (testing "Все реализации задачи 7 возвращают одинаковый результат"
+    (let [results (map (fn [f] (f))
+                       [p7/solve-7-tail
+                        p7/solve-7-recursive
+                        p7/solve-7-modular
+                        p7/solve-7-map
+                        p7/solve-7-loop
+                        p7/solve-7-lazy
+                        p7alt/solve-7-sieve])]
+      (is (apply = results)))))

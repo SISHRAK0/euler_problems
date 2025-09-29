@@ -1,31 +1,43 @@
-name: CI
+name: Clojure CI
 
 on:
   push:
+    branches: [ main, master ]
   pull_request:
+    branches: [ main, master ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Set up Clojure
-        uses: DeLaGuardo/setup-clojure@v1
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
         with:
-          clojure-version: '1.11.2'
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.m2
+            ~/.lein
+            ./target
+          key: ${{ runner.os }}-lein-${{ hashFiles('project.clj') }}
+          restore-keys: |
+            ${{ runner.os }}-lein-
+
+      - name: Install Leiningen
+        run: |
+          curl -L https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein > lein
+          chmod +x lein
+          sudo mv lein /usr/local/bin/
 
       - name: Run tests
-        run: |
-          clj -M:test -e "(clojure.test/run-tests 'euler.problem7-test 'euler.problem24-test)"
+        run: lein test
 
-      - name: clj-kondo lint
-        run: |
-          curl -sSfL https://github.com/clj-kondo/clj-kondo/releases/latest/download/clj-kondo-linux-amd64 -o clj-kondo
-          chmod +x clj-kondo
-          ./clj-kondo --config .clj-kondo/config.edn --lint src test
-
-      - name: Check formatting (zprint)
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/kkinnear/zprint/master/scripts/install.sh | bash
-          ./zprint --check src test
+      - name: Run code quality checks
+        run: lein eastwood
