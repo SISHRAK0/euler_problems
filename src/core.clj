@@ -1,12 +1,27 @@
 (ns core
   (:gen-class)
   (:require
+    [clojure.java.shell :as shell]
+    [clojure.string :as str]
     [clojure.string :as str]
     [problem7 :as p7]
     [problem7-alt :as p7alt]
     [problem24 :as p24]
     [problem24-alt :as p24alt]))
 
+(defn run-python [script]
+  (let [result (shell/sh "python3" script)]
+    (if (zero? (:exit result))
+      (str/trim (:out result))
+      (throw (Exception. (str "Python error: " (:err result)))))))
+
+(defn run-cpp [src]
+  (let [exe (str src ".out")]
+    (shell/sh "g++" src "-o" exe)
+    (let [result (shell/sh (str "./" exe))]
+      (if (zero? (:exit result))
+        (str/trim (:out result))
+        (throw (Exception. (str "C++ error: " (:err result))))))))
 (defn -main
   "Печатает результаты всех реализаций задачи 7."
   [& _]
@@ -18,6 +33,8 @@
   (println "loop/recur:      " (p7/solve-7-loop))
   (println "lazy filter:     " (p7/solve-7-lazy))
   (println "sieve (lazy):    " (p7alt/solve-7-sieve))
+  (println "Python:" (run-python "./src/python_euler7.py"))
+  (println "C++:" (run-cpp "./src/cpp_euler7.cpp"))
   (println "\nВсе реализации должны давать одинаковый ответ: 104743")
 
   "Печатает результаты всех реализаций задачи 24."
@@ -26,4 +43,6 @@
   (println "tail variant (nth-perm-tail):" (p24/solve-24-tail))
   (println "alt compact (millionth-permutation):" (p24alt/millionth-permutation))
   (println "bruteforce (lazy):" (p24/solve-24-bruteforce))
+  (println "Python:" (run-python "./src/python_euler24.py"))
+  (println "C++:" (run-cpp "./src/cpp_euler24.cpp"))
   (System/exit 0))

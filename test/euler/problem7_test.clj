@@ -1,16 +1,33 @@
 (ns euler.problem7-test
-  (:require [clojure.test :refer :all]
+  (:require [clojure.java.shell :as shell]
+            [clojure.string :as str]
+            [clojure.test :refer :all]
             [problem7 :as p7]
             [problem7-alt :as p7alt]))
+
+(defn run-python-script [script-path]
+  (let [result (shell/sh "python3" script-path)]
+    (if (zero? (:exit result))
+      (str/trim (:out result))
+      (throw (Exception. (str "Python error: " (:err result)))))))
+
+(defn run-cpp-program [src-path]
+  (let [exe (str src-path ".out")]
+    (shell/sh "g++" src-path "-o" exe)
+    (let [result (shell/sh (str "./" exe))]
+      (if (zero? (:exit result))
+        (str/trim (:out result))
+        (throw (Exception. (str "C++ error: " (:err result))))))))
+
 
 (deftest prime?-basics
   (testing "Корректность функции prime?"
     (is (false? (p7/prime? 0)))
     (is (false? (p7/prime? 1)))
-    (is (true?  (p7/prime? 2)))
-    (is (true?  (p7/prime? 3)))
+    (is (true? (p7/prime? 2)))
+    (is (true? (p7/prime? 3)))
     (is (false? (p7/prime? 4)))
-    (is (true?  (p7/prime? 29)))
+    (is (true? (p7/prime? 29)))
     (is (false? (p7/prime? 100)))))
 
 (deftest small-primes
@@ -39,3 +56,18 @@
                         p7/solve-7-lazy
                         p7alt/solve-7-sieve])]
       (is (apply = results)))))
+
+(deftest euler7-correctness
+  (testing "Сравнение всех реализаций задачи 7 (10001-е простое число)"
+    (let [expected "104743"
+          clojure-results [(str (p7/solve-7-tail))
+                           (str (p7/solve-7-recursive))
+                           (str (p7/solve-7-map))
+                           (str (p7/solve-7-loop))
+                           (str (p7/solve-7-lazy))
+                           (str (p7alt/solve-7-sieve))]
+          python-result (run-python-script "./src/python_euler7.py")
+          cpp-result (run-cpp-program "./src/cpp_euler7.cpp")]
+      (is (every? #(= expected %) clojure-results))
+      (is (= expected python-result))
+      (is (= expected cpp-result)))))

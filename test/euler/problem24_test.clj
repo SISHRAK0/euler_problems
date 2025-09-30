@@ -1,7 +1,24 @@
 (ns euler.problem24-test
-  (:require [clojure.test :refer :all]
-            [problem24 :as p24]
-            [problem24-alt :as p24alt]))
+  (:require
+    [clojure.java.shell :as shell]
+    [clojure.string :as str]
+    [clojure.test :refer [deftest is testing]]
+    [problem24 :as p24]
+    [problem24-alt :as p24alt]))
+
+(defn run-python-script [script-path]
+  (let [result (shell/sh "python3" script-path)]
+    (if (zero? (:exit result))
+      (str/trim (:out result))
+      (throw (Exception. (str "Python error: " (:err result)))))))
+
+(defn run-cpp-program [src-path]
+  (let [exe (str src-path ".out")]
+    (shell/sh "g++" src-path "-o" exe)
+    (let [result (shell/sh (str "./" exe))]
+      (if (zero? (:exit result))
+        (str/trim (:out result))
+        (throw (Exception. (str "C++ error: " (:err result))))))))
 
 (deftest factorial-test
   (is (= 1 (p24/factorial 0)))
@@ -29,3 +46,17 @@
                    (p24/solve-24-tail)
                    (p24alt/millionth-permutation)]]
       (is (apply = results)))))
+
+
+
+(deftest euler24-correctness
+  (testing "Сравнение всех реализаций задачи 24 (миллионная перестановка)"
+    (let [expected "2783915460"
+          clojure-results [(p24/solve-24)
+                           (p24/solve-24-tail)
+                           (p24alt/millionth-permutation)]
+          python-result (run-python-script "./src/python_euler24.py")
+          cpp-result (run-cpp-program "./src/cpp_euler24.cpp")]
+      (is (every? #(= expected %) clojure-results))
+      (is (= expected python-result))
+      (is (= expected cpp-result)))))
